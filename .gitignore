@@ -1,0 +1,25 @@
+# Android & Gradle
+*.apk
+.gradle/
+build/
+app/build/
+*.log
+local.properties
+.android/
+
+# Python & Backend
+backend/venv/
+backend/__pycache__/
+*.pyc
+backend/*.db
+
+# IDE & OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# Legacy/Backup directories
+flutter_backup/
+.dart_tool/
+.flutter-plugins*
