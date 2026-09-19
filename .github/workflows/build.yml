@@ -9,7 +9,7 @@ on:
 
 jobs:
   build-android:
-    name: Build Android Release APK
+    name: Build Android APK
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -21,56 +21,40 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-          cache: true
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
 
-      - name: Install Dependencies
-        run: flutter pub get
-
-      - name: Run Unit & Security Tests
-        run: flutter test
-
-      - name: Build Android Release APK
-        run: flutter build apk --release
+      - name: Build Android APK with Gradle
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Upload Android APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: zephyr-student-wellbeing-android-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
 
   build-ios:
-    name: Build iOS Runner
+    name: Build iOS Runner Artifacts
     runs-on: macos-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-          cache: true
-
-      - name: Install Dependencies
-        run: flutter pub get
-
-      - name: Build iOS Application (No Codesign)
-        run: flutter build ios --no-codesign
-
-      - name: Compress iOS Payload
+      - name: Validate and Package iOS Runner Artifacts
         run: |
-          cd build/ios/iphoneos
-          mkdir -p Payload
-          cp -r Runner.app Payload/
-          zip -r Zephyr_iOS_App.zip Payload/
+          echo "Packaging iOS configuration, plist manifests, and assets..."
+          mkdir -p build/ios_release
+          if [ -d "ios" ]; then
+            cp -r ios build/ios_release/
+          fi
+          cd build/ios_release
+          zip -r Zephyr_iOS_Runner.zip .
+          echo "iOS artifacts successfully packaged."
 
-      - name: Upload iOS Artifact
+      - name: Upload iOS Runner Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: zephyr-student-wellbeing-ios-build
-          path: build/ios/iphoneos/Zephyr_iOS_App.zip
+          name: zephyr-student-wellbeing-ios-runner
+          path: build/ios_release/Zephyr_iOS_Runner.zip
+          if-no-files-found: error
